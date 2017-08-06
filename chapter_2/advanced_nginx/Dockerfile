@@ -9,7 +9,7 @@ RUN rm /etc/nginx/conf.d/default.conf
 
 # Create our website's directory and make sure
 # that the webserver process can read ityy
-RUN mkdir -p /srv/www/html \
+RUN mkdir -p /srv/www/html && \
     chown nginx:nginx /srv/www/html
 
 # Put our custom server configuration in
