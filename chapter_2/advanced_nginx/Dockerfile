@@ -8,7 +8,7 @@ RUN apt-get update -q && \
 RUN rm /etc/nginx/conf.d/default.conf
 
 # Create our website's directory and make sure
-# that the webserver process can read ityy
+# that the webserver process can read it
 RUN mkdir -p /srv/www/html && \
     chown nginx:nginx /srv/www/html
 
