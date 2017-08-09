@@ -1,6 +1,6 @@
 FROM python:3
 
-# Add some labels for cache busting an annotating
+# Add some labels for cache busting and annotating
 LABEL version="1.0"
 LABEL org.sgnn7.name="python-webserver"
 
