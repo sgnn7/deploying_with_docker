@@ -23,11 +23,11 @@ RUN mkdir -p $SRV_PATH && \
 # Define ./external as an externally-mounted directory
 VOLUME $SRV_PATH/external
 
-# To server things up though python, we need t obe in that
+# To serve things up though python, we need to be in that
 # same directory
 WORKDIR $SRV_PATH
 
-# Copy our testfine again
+# Copy our test file again
 COPY test.txt $SRV_PATH/
 
 # Add a URL-hosted content into the image
