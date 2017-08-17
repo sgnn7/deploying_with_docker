@@ -5,6 +5,9 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.15.4"
+    "body-parser": "^1.17.2",
+    "express": "^4.15.4",
+    "mongodb": "^2.2.31",
+    "pug": "^2.0.0-rc.3"
   }
 }
