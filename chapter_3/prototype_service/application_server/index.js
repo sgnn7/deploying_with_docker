@@ -10,24 +10,20 @@ const COLLECTION_NAME = 'words';
 const SERVER_PORT = 8000;
 
 const app = express();
-const db = mongo.MongoClient();
+const client = mongo.MongoClient();
 const dbUri = `mongodb://${DB_HOST}/${DB_NAME}`;
 const words = [];
 
 app.set('view engine', 'pug')
 app.use(bodyParser.urlencoded({ extended: false }))
 
-function loadWords(callback) {
-    db.connect(dbUri, (err, db) => {
-        if (err) {
-            throw err;
-        }
-
-        db.collection(COLLECTION_NAME).find({})
-                                      .toArray((err, docs) => {
-            words.push.apply(words, docs.map(doc => doc.word));
-            callback();
-        });
+function loadWordsFromDatabase() {
+    return client.connect(dbUri).then((db) => {
+        return db.collection(COLLECTION_NAME).find({}).toArray();
+    })
+    .then((docs) => {
+        words.push.apply(words, docs.map(doc => doc.word));
+        return words;
     });
 }
 
@@ -40,12 +36,8 @@ app.post('/new', (req, res) => {
 
     console.info(`Got word: ${word}`);
     if (word) {
-        db.connect(dbUri, (err, db) => {
-            if (err) {
-                throw err;
-            }
-
-            db.collection(COLLECTION_NAME).insertOne({ word } ,() => {
+        client.connect(dbUri).then((db) => {
+            db.collection(COLLECTION_NAME).insertOne({ word }, () => {
                 db.close();
                 words.push(word);
             });
@@ -55,8 +47,8 @@ app.post('/new', (req, res) => {
     res.redirect('/');
 });
 
-loadWords(() => {
-    console.info("Data loaded from database");
+loadWordsFromDatabase().then((words) => {
+    console.info(`Data loaded from database (${words.length} words)`);
     app.listen(SERVER_PORT, () => {
         console.info("Server started on port %d...", SERVER_PORT);
     });
