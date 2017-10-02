@@ -9,6 +9,8 @@ RUN apt-get update -q && \
 # Container port that should get exposed
 EXPOSE 8000
 
+ENV SRV_PATH /usr/local/share/queue_handler
+
 # Make our directory
 RUN mkdir -p $SRV_PATH && \
     chown node:node $SRV_PATH

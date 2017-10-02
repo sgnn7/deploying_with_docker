@@ -4,7 +4,7 @@ const Queue = require('bull');
 
 const veryImportantThingsQueue = new Queue('very_important_things',
                                            { redis: { port: 6379,
-                                                      host: '127.0.0.1' }});
+                                                      host: process.env.QUEUE_HOST }});
 
 // Prints any message data received
 class Receiver {
