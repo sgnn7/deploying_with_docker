@@ -1,0 +1,27 @@
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  tasks:
+
+    - name: Finding default VPC
+      ec2_vpc_subnet_facts:
+        region: "{{ aws_region }}"
+        filters:
+          default-for-az: "true"
+      register: vpc_facts
+
+    - name: Provisioning cluster node
+      ec2:
+        region: "{{ aws_region }}"
+        image: "{{ cluster_node_ami }}"
+        key_name: "{{ ssh_key_name }}"
+        instance_type: "t2.medium"
+        vpc_subnet_id: "{{ vpc_facts.subnets[0].id }}"
+        source_dest_check: no
+        assign_public_ip: yes
+        monitoring: no
+        instance_tags:
+          Name: cluster-node
+        wait: yes
+        wait_timeout: 500

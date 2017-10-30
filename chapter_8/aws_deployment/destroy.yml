@@ -1,0 +1,21 @@
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  tasks:
+    - name: Finding VMs to delete
+      ec2_remote_facts:
+        region: "{{ aws_region }}"
+        filters:
+          "tag:Name": "cluster-node"
+      register: deletable_instances
+
+    - name: Deleting instances
+      ec2:
+        region: "{{ aws_region }}"
+        instance_ids: "{{ item.id }}"
+        state: absent
+        wait: yes
+        wait_timeout: 500
+      with_items: "{{ deletable_instances.instances }}"
+      when: deletable_instances is defined
