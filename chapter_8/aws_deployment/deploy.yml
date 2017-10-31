@@ -3,13 +3,64 @@
   gather_facts: False
 
   tasks:
-
-    - name: Finding default VPC
-      ec2_vpc_subnet_facts:
+    - name: Setting up VPC
+      ec2_vpc_net:
         region: "{{ aws_region }}"
-        filters:
-          default-for-az: "true"
-      register: vpc_facts
+        name: "Swarm VPC"
+        cidr_block: "{{ swarm_vpc_cidr }}"
+      register: swarm_vpc
+
+    - set_fact:
+        vpc: "{{ swarm_vpc.vpc }}"
+
+    - name: Setting up the subnet
+      ec2_vpc_subnet:
+        region: "{{ aws_region }}"
+        vpc_id: "{{ vpc.id }}"
+        cidr: "{{ swarm_vpc_cidr }}"
+        resource_tags:
+          Name: "Swarm subnet"
+      register: swarm_subnet
+
+    - name: Setting up the gateway
+      ec2_vpc_igw:
+        region: "{{ aws_region }}"
+        vpc_id: "{{ vpc.id }}"
+      register: swarm_gateway
+
+    - name: Setting up routing table
+      ec2_vpc_route_table:
+        region: "{{ aws_region }}"
+        vpc_id: "{{ vpc.id }}"
+        lookup: tag
+        tags:
+          Name: "Swarm Routing Table"
+        subnets:
+          - "{{ swarm_subnet.subnet.id }}"
+        routes:
+          - dest: 0.0.0.0/0
+            gateway_id: "{{ swarm_gateway.gateway_id }}"
+
+
+    - name: Setting up security group
+      ec2_group:
+        region: "{{ aws_region }}"
+        name: "Swarm SG"
+        description: "Security group for the swarm"
+        vpc_id: "{{ vpc.id }}"
+        rules:
+          - cidr_ip: 0.0.0.0/0
+            proto: tcp
+            from_port: 22
+            to_port: 22
+          - cidr_ip: 0.0.0.0/0
+            proto: tcp
+            from_port: 80
+            to_port: 80
+        rules_egress:
+          - cidr_ip: 0.0.0.0/0
+            proto: all
+      register: swarm_sg
 
     - name: Provisioning cluster node
       ec2:
@@ -17,7 +68,8 @@
         image: "{{ cluster_node_ami }}"
         key_name: "{{ ssh_key_name }}"
         instance_type: "t2.medium"
-        vpc_subnet_id: "{{ vpc_facts.subnets[0].id }}"
+        group_id: "{{ swarm_sg.group_id }}"
+        vpc_subnet_id: "{{ swarm_subnet.subnet.id }}"
         source_dest_check: no
         assign_public_ip: yes
         monitoring: no
