@@ -10,15 +10,14 @@ const COLLECTION_NAME = 'words';
 const SERVER_PORT = 8000;
 
 const app = express();
-const client = mongo.MongoClient();
 const dbUri = `mongodb://${DB_HOST}/${DB_NAME}`;
 
 app.set('view engine', 'pug')
 app.use(bodyParser.urlencoded({ extended: false }))
 
 function loadWordsFromDatabase() {
-    return client.connect(dbUri).then((db) => {
-        return db.collection(COLLECTION_NAME).find({}).toArray();
+    return mongo.connect(dbUri).then(client => {
+        return client.db(DB_NAME).collection(COLLECTION_NAME).find({}).toArray();
     })
     .then((docs) => {
         return docs.map(doc => doc.word);
@@ -38,9 +37,9 @@ app.post('/new', (req, res) => {
 
     console.info(`Got word: ${word}`);
     if (word) {
-        client.connect(dbUri).then((db) => {
-            db.collection(COLLECTION_NAME).insertOne({ word }, () => {
-                db.close();
+        mongo.connect(dbUri).then(client => {
+            client.db(DB_NAME).collection(COLLECTION_NAME).insertOne({ word }, () => {
+                client.close();
             });
         });
     }
