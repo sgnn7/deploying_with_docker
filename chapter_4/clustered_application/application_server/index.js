@@ -16,7 +16,7 @@ app.set('view engine', 'pug')
 app.use(bodyParser.urlencoded({ extended: false }))
 
 function loadWordsFromDatabase() {
-    return mongo.connect(dbUri).then(client => {
+    return mongo.connect(dbUri, { useNewUrlParser: true }).then(client => {
         return client.db(DB_NAME).collection(COLLECTION_NAME).find({}).toArray();
     })
     .then((docs) => {
@@ -37,7 +37,7 @@ app.post('/new', (req, res) => {
 
     console.info(`Got word: ${word}`);
     if (word) {
-        mongo.connect(dbUri).then(client => {
+        mongo.connect(dbUri, { useNewUrlParser: true }).then(client => {
             client.db(DB_NAME).collection(COLLECTION_NAME).insertOne({ word }, () => {
                 client.close();
             });
